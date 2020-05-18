@@ -11,7 +11,7 @@
 	<body>
 
 		<nav class="navbar navbar-expand-lg navbar-light bg-light">
-			<a class="navbar-brand" href="./">TODOs</a>
+			<a class="navbar-brand" href="/">TODOs</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
@@ -20,17 +20,17 @@
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
 				<ul class="navbar-nav mr-auto">
 					<li class="nav-item">
-						<a class="nav-link" href="./imprint">Imprint</a>
+						<a class="nav-link" href="/imprint">Imprint</a>
 					</li>
 				</ul>
-				<a href="./new" class="btn btn-outline-primary">Add</a>
+				<a href="/new" class="btn btn-outline-primary">Add</a>
 			</div>
 		</nav>
 
 		<div class="container">
 			<div class="table-responsive">
 				<table class="table table-striped table-borderless" style="margin-top: 20px">
-					<caption><a href="./new">Add</a></caption>
+					<caption><a href="/new">Add</a></caption>
 					<thead>
 						<tr>
 							<th scope="col">#</th>
@@ -41,42 +41,20 @@
 						</tr>
 					</thead>
 					<tbody>
+						{{range .todos}}
 						<tr>
-							<th scope="row">1</th>
-							<td>Finish index.html</td>
-							<td>2020-05-07</td>
-							<td>60%</td>
+							<th scope="row">{{.Id}}</th>
+							<td>{{.Description}}</td>
+							<td>{{.Deadline}}</td>
+							<td>{{.Progress}}%</td>
 							<td>
 								<div class="btn-group-sm" role="group" aria-label="Basic example">
-									<a href="./edit.html" class="btn btn-warning">Edit</a>
+									<a href="/t/{{.Id}}" class="btn btn-warning">Edit</a>
 									<button type="button" class="btn btn-danger">Delete</button>
 								</div>
 							</td>
 						</tr>
-						<tr>
-							<th scope="row">2</th>
-							<td>Register for exam</td>
-							<td>2020-05-11</td>
-							<td>100%</td>
-							<td>
-								<div class="btn-group-sm" role="group" aria-label="Basic example">
-									<a href="./edit.html" class="btn btn-warning">Edit</a>
-									<button type="button" class="btn btn-danger">Delete</button>
-								</div>
-							</td>
-						</tr>
-						<tr>
-							<th scope="row">3</th>
-							<td>Learn bootstrap</td>
-							<td>2020-06-04</td>
-							<td>10%</td>
-							<td>
-								<div class="btn-group-sm" role="group" aria-label="Basic example">
-									<a href="./edit.html" class="btn btn-warning">Edit</a>
-									<button type="button" class="btn btn-danger">Delete</button>
-								</div>
-							</td>
-						</tr>
+						{{end}}
 					</tbody>
 				</table>
 			</div>
