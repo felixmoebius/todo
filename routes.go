@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "database/sql"
@@ -22,9 +23,13 @@ func routeIndex(ctx *gin.Context) {
 	todos := make([]todo, 0)
 	for rows.Next() {
 		var t todo
-		if err := rows.Scan(&t.Id, &t.Description, &t.Deadline, &t.Progress); err != nil {
+		var d time.Time
+
+		if err := rows.Scan(&t.Id, &t.Description, &d, &t.Progress); err != nil {
 			log.Fatal(err)
 		}
+
+		t.Deadline = d.Format("2006-01-02")
 		todos = append(todos, t)
 	}
 
@@ -76,6 +81,7 @@ func routeTodoGet(ctx *gin.Context) {
 	db := dbGet(ctx)
 
 	var t todo
+	var d time.Time
 
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -84,11 +90,12 @@ func routeTodoGet(ctx *gin.Context) {
 	}
 
 	row := db.QueryRow("SELECT id, description, deadline, progress FROM todos WHERE id = $1", id)
-	err = row.Scan(&t.Id, &t.Description, &t.Deadline, &t.Progress)
+	err = row.Scan(&t.Id, &t.Description, &d, &t.Progress)
 	if err != nil {
 		ctx.String(http.StatusNotFound, "404")
 		return
 	}
+	t.Deadline = d.Format("2006-01-02")
 
 	ctx.HTML(
 		http.StatusOK,
