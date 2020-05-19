@@ -68,7 +68,7 @@ func routeTodoPost(ctx *gin.Context) {
 		panic(err)
 	}
 
-	ctx.String(http.StatusOK, "ok")
+	ctx.Redirect(http.StatusMovedPermanently, "/")
 }
 
 // read
