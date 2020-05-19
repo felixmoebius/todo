@@ -16,10 +16,10 @@ func main() {
 	router.GET(	"/", 		routeIndex)
 	router.GET(	"/imprint", 	routeImprint)
 	router.GET(	"/new", 	routeNew)
+	router.POST(	"t/:id",	routeTodoDelete)
 	router.GET(	"/t/:id",	routeTodoGet)
 	router.POST(	"/t",		routeTodoPost)
 	router.PUT(	"t/:id",	routeTodoPut)
-	router.DELETE(	"t/:id",	routeTodoDelete)
 
 	router.Run(":" + os.Getenv("PORT"))
 }

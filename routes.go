@@ -107,6 +107,6 @@ func routeTodoPut(ctx *gin.Context) {
 
 // delete
 func routeTodoDelete(ctx *gin.Context) {
-	id := ctx.Param("id")
-	ctx.String(http.StatusOK, id)
+	//id := ctx.Param("id")
+	ctx.String(http.StatusOK, "del")
 }

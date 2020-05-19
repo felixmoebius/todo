@@ -50,11 +50,28 @@
 						</div>
 					</div>					
 				</div>
-				<button type="submit" class="btn btn-primary">Update</button>
-				<a href="/">
-					<button type="button" class="btn btn-outline-secondary">Cancel</button>
-				</a>		
+
+
+				<div class="form-group">
+					<div class="form-row">
+						<div class="col">
+							<button type="submit" class="btn btn-primary">Update</button>
+							<a href="/">
+								<button type="button" class="btn btn-outline-secondary">Cancel</button>
+							</a>
+						</div>
+						<div class="col">
+							<div class="text-right">
+								<!-- this button belongs to the nested form -->
+								<button type="submit" form="inner" class="btn btn-outline-danger">Delete</button>
+							</div>	
+						</div>
+					</div>
+				</div>
 			</form>
+
+			<!-- nested form -->
+			<form id="inner" action="/t/{{.todo.Id}}" method="post"></form>
 		</div>
 
 		<!-- Optional JavaScript -->
