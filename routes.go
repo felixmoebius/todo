@@ -15,7 +15,7 @@ import (
 func routeIndex(ctx *gin.Context) {
 	db := dbInstance(ctx)
 
-	todos, err := dbGetAll(db)
+	todos, err := db.All()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,8 +51,8 @@ func routeTodoCreate(ctx *gin.Context) {
 	db := dbInstance(ctx)
 
 	t, err := todoFromContext(ctx, true)
-	
-	err = dbInsert(db, t)
+
+	err = db.Insert(t)
 	if err != nil {
 		panic(err)
 	}
@@ -72,7 +72,7 @@ func routeTodoRead(ctx *gin.Context) {
 		return
 	}
 
-	t, err = dbGet(db, id)
+	t, err = db.Get(id)
 
 	ctx.HTML(
 		http.StatusOK,
@@ -93,7 +93,7 @@ func routeTodoUpdate(ctx *gin.Context) {
 		return
 	}
 	
-	err = dbUpdate(db, t)
+	err = db.Update(t)
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +111,7 @@ func routeTodoDelete(ctx *gin.Context) {
 		return
 	}
 
-	err = dbDelete(db, id)
+	err = db.Delete(id)
 	if err != nil {
 		panic(err)
 	}

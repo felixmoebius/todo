@@ -7,6 +7,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type DB struct {
+	*sql.DB
+}
+
 const (
 	SQL_QUERY_SELECT_ID = `
 		SELECT id, description, deadline, progress 
@@ -44,15 +48,15 @@ func dbSetup() *sql.DB {
 func dbMiddleware() gin.HandlerFunc {
 	db := dbSetup()
 	return func (ctx *gin.Context) {
-		ctx.Set("database", db)
+		ctx.Set("database", &DB{db})
 	}
 }
 
-func dbInstance(ctx *gin.Context) *sql.DB {
-	return ctx.MustGet("database").(*sql.DB)
+func dbInstance(ctx *gin.Context) *DB {
+	return ctx.MustGet("database").(*DB)
 }
 
-func dbGet(db *sql.DB, id int) (todo, error) {
+func (db *DB) Get(id int) (todo, error) {
 	var t todo
 
 	row := db.QueryRow(SQL_QUERY_SELECT_ID, id)
@@ -64,7 +68,7 @@ func dbGet(db *sql.DB, id int) (todo, error) {
 	return t, nil
 }
 
-func dbGetAll(db *sql.DB) ([]todo, error) {
+func (db *DB) All() ([]todo, error) {
 	todos := make([]todo, 0)
 
 	rows, err := db.Query(SQL_QUERY_SELECT_ALL)
@@ -88,17 +92,17 @@ func dbGetAll(db *sql.DB) ([]todo, error) {
 	return todos, nil
 }
 
-func dbDelete(db *sql.DB, id int) error {
+func (db *DB) Delete(id int) error {
 	_, err := db.Exec(SQL_QUERY_DELETE_ID, id)
 	return err
 }
 
-func dbUpdate(db *sql.DB, t todo) error {
+func (db *DB) Update(t todo) error {
 	_, err := db.Exec(SQL_QUERY_UPDATE_ID, t.Description, t.Deadline, t.Progress, t.Id)
 	return err
 }
 
-func dbInsert(db *sql.DB, t todo) error {
+func (db *DB) Insert(t todo) error {
 	_, err := db.Exec(SQL_QUERY_INSERT, t.Description, t.Deadline, t.Progress)
 	return err
 }
