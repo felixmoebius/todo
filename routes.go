@@ -2,8 +2,9 @@ package main
 
 import (
 	"net/http"
-	"log"
 	"strconv"
+	"log"
+	"errors"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,25 +13,11 @@ import (
 )
 
 func routeIndex(ctx *gin.Context) {
-	db := dbGet(ctx)
+	db := dbInstance(ctx)
 
-	rows, err := db.Query("SELECT id, description, deadline, progress FROM todos")
+	todos, err := dbGetAll(db)
 	if err != nil {
 		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	todos := make([]todo, 0)
-	for rows.Next() {
-		var t todo
-		var d time.Time
-
-		if err := rows.Scan(&t.Id, &t.Description, &d, &t.Progress); err != nil {
-			log.Fatal(err)
-		}
-
-		t.Deadline = d.Format("2006-01-02")
-		todos = append(todos, t)
 	}
 
 	ctx.HTML(
@@ -60,15 +47,12 @@ func routeNew(ctx *gin.Context) {
 
 // todo resource
 // create
-func routeTodoPost(ctx *gin.Context) {
-	db := dbGet(ctx)
+func routeTodoCreate(ctx *gin.Context) {
+	db := dbInstance(ctx)
 
-	desc := ctx.PostForm("description")
-	date := ctx.PostForm("deadline")
-	prog := ctx.PostForm("progress")
-
-	_, err := db.Exec("INSERT INTO todos(description, deadline, progress) VALUES ($1, $2, $3)", desc, date, prog)
-
+	t, err := todoFromContext(ctx, true)
+	
+	err = dbInsert(db, t)
 	if err != nil {
 		panic(err)
 	}
@@ -77,11 +61,10 @@ func routeTodoPost(ctx *gin.Context) {
 }
 
 // read
-func routeTodoGet(ctx *gin.Context) {
-	db := dbGet(ctx)
+func routeTodoRead(ctx *gin.Context) {
+	db := dbInstance(ctx)
 
 	var t todo
-	var d time.Time
 
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -89,13 +72,7 @@ func routeTodoGet(ctx *gin.Context) {
 		return
 	}
 
-	row := db.QueryRow("SELECT id, description, deadline, progress FROM todos WHERE id = $1", id)
-	err = row.Scan(&t.Id, &t.Description, &d, &t.Progress)
-	if err != nil {
-		ctx.String(http.StatusNotFound, "404")
-		return
-	}
-	t.Deadline = d.Format("2006-01-02")
+	t, err = dbGet(db, id)
 
 	ctx.HTML(
 		http.StatusOK,
@@ -107,13 +84,71 @@ func routeTodoGet(ctx *gin.Context) {
 }
 
 // update
-func routeTodoPut(ctx *gin.Context) {
-	id := ctx.Param("id")
-	ctx.String(http.StatusOK, id)
+func routeTodoUpdate(ctx *gin.Context) {
+	db := dbInstance(ctx)
+
+	t, err := todoFromContext(ctx, false)
+	if err != nil {
+		ctx.String(http.StatusNotFound, "404")
+		return
+	}
+	
+	err = dbUpdate(db, t)
+	if err != nil {
+		panic(err)
+	}
+
+	ctx.Redirect(http.StatusMovedPermanently, "/")
 }
 
 // delete
 func routeTodoDelete(ctx *gin.Context) {
-	//id := ctx.Param("id")
-	ctx.String(http.StatusOK, "del")
+	db := dbInstance(ctx)
+
+	id, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.String(http.StatusNotFound, "404")
+		return
+	}
+
+	err = dbDelete(db, id)
+	if err != nil {
+		panic(err)
+	}
+
+	ctx.Redirect(http.StatusMovedPermanently, "/")
+}
+
+func todoFromContext(ctx *gin.Context, noId bool) (todo, error)  {
+	var t todo
+	var err error
+
+	id := "0"
+	if !noId {
+		id = ctx.Param("id")
+	}
+	
+	desc := ctx.PostForm("description")
+	date := ctx.PostForm("deadline")
+	prog := ctx.PostForm("progress")
+
+	// validate input
+	if t.Id, err = strconv.Atoi(id); err != nil {
+		return t, err
+	}
+
+	if len(desc) > 160 {
+		return t, errors.New("Description longer than 160 characters")
+	}
+	t.Description = desc
+
+	if t.Deadline, err = time.Parse("2006-01-02", date); err != nil {
+		return t, err
+	}
+
+	if t.Progress, err = strconv.Atoi(prog); err != nil {
+		return t, err
+	}
+
+	return t, nil
 }

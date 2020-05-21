@@ -47,7 +47,7 @@
 						<tr>
 							<th scope="row">{{.Id}}</th>
 							<td><a href="/t/{{.Id}}">{{.Description}}</a></td>
-							<td>{{.Deadline}}</td>
+							<td>{{.Deadline | formatDate}}</td>
 							<td>{{.Progress}}%</td>
 						</tr>
 						{{end}}
