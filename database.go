@@ -1,12 +1,12 @@
 package main
 
 import (
-	"os"
 	"github.com/gin-gonic/gin"
 	"database/sql"
 	_ "github.com/lib/pq"
 )
 
+// embed sql.DB to define receiver functions
 type DB struct {
 	*sql.DB
 }
@@ -34,38 +34,63 @@ const (
 		INSERT 
 		INTO todos(description, deadline, progress) 
 		VALUES ($1, $2, $3)`
+
+	CONTEXT_DB_KEY = "database"
 )
 
-func dbSetup() *sql.DB {
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+func DBConnect(url string) *DB {
+	db, err := sql.Open("postgres", url)
 	if err != nil {
 		panic("can't connect to database")
 	}
 
-	return db
+	return &DB{db}
 }
 
-func dbMiddleware() gin.HandlerFunc {
-	db := dbSetup()
-	return func (ctx *gin.Context) {
-		ctx.Set("database", &DB{db})
-	}
-}
-
-func dbInstance(ctx *gin.Context) *DB {
-	return ctx.MustGet("database").(*DB)
+func (db *DB) Middleware(ctx *gin.Context) {
+	ctx.Set(CONTEXT_DB_KEY, db)
 }
 
 func (db *DB) Get(id int) (todo, error) {
 	var t todo
 
 	row := db.QueryRow(SQL_QUERY_SELECT_ID, id)
-	err := row.Scan(&t.Id, &t.Description, &t.Deadline, &t.Progress)
-	if err != nil {
-		return t, err
-	}
+	err := row.Scan(
+		&t.Id, 
+		&t.Description, 
+		&t.Deadline, 
+		&t.Progress)
 
-	return t, nil
+	return t, err
+}
+
+func (db *DB) Delete(id int) error {
+	_, err := db.Exec(
+		SQL_QUERY_DELETE_ID,
+		id)
+
+	return err
+}
+
+func (db *DB) Update(t todo) error {
+	_, err := db.Exec(
+		SQL_QUERY_UPDATE_ID, 
+		t.Description, 
+		t.Deadline, 
+		t.Progress, 
+		t.Id)
+
+	return err
+}
+
+func (db *DB) Insert(t todo) error {
+	_, err := db.Exec(
+		SQL_QUERY_INSERT,
+		t.Description,
+		t.Deadline,
+		t.Progress)
+
+	return err
 }
 
 func (db *DB) All() ([]todo, error) {
@@ -78,31 +103,21 @@ func (db *DB) All() ([]todo, error) {
 		defer rows.Close()
 	}
 
+	// loop over results and convert to todo	
 	for rows.Next() {
 		var t todo
 
-		err = rows.Scan(&t.Id, &t.Description, &t.Deadline, &t.Progress)
-		if err != nil {
-			return todos, err
+		if err = rows.Scan(
+			&t.Id, 
+			&t.Description, 
+			&t.Deadline, 
+			&t.Progress,
+		); err != nil {
+			break
 		}
 
 		todos = append(todos, t)
 	}
 
-	return todos, nil
-}
-
-func (db *DB) Delete(id int) error {
-	_, err := db.Exec(SQL_QUERY_DELETE_ID, id)
-	return err
-}
-
-func (db *DB) Update(t todo) error {
-	_, err := db.Exec(SQL_QUERY_UPDATE_ID, t.Description, t.Deadline, t.Progress, t.Id)
-	return err
-}
-
-func (db *DB) Insert(t todo) error {
-	_, err := db.Exec(SQL_QUERY_INSERT, t.Description, t.Deadline, t.Progress)
-	return err
+	return todos, err
 }

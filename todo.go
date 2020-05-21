@@ -8,7 +8,3 @@ type todo struct {
 	Deadline time.Time
 	Progress int
 }
-
-func formatDate(t time.Time) string {
-	return t.Format("2006-01-02")
-}

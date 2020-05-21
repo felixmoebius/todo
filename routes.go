@@ -13,7 +13,7 @@ import (
 )
 
 func routeIndex(ctx *gin.Context) {
-	db := dbInstance(ctx)
+	db := ctx.MustGet(CONTEXT_DB_KEY).(*DB)
 
 	todos, err := db.All()
 	if err != nil {
@@ -48,7 +48,7 @@ func routeNew(ctx *gin.Context) {
 // todo resource
 // create
 func routeTodoCreate(ctx *gin.Context) {
-	db := dbInstance(ctx)
+	db := ctx.MustGet(CONTEXT_DB_KEY).(*DB)
 
 	t, err := todoFromContext(ctx, true)
 
@@ -62,7 +62,7 @@ func routeTodoCreate(ctx *gin.Context) {
 
 // read
 func routeTodoRead(ctx *gin.Context) {
-	db := dbInstance(ctx)
+	db := ctx.MustGet(CONTEXT_DB_KEY).(*DB)
 
 	var t todo
 
@@ -85,7 +85,7 @@ func routeTodoRead(ctx *gin.Context) {
 
 // update
 func routeTodoUpdate(ctx *gin.Context) {
-	db := dbInstance(ctx)
+	db := ctx.MustGet(CONTEXT_DB_KEY).(*DB)
 
 	t, err := todoFromContext(ctx, false)
 	if err != nil {
@@ -103,7 +103,7 @@ func routeTodoUpdate(ctx *gin.Context) {
 
 // delete
 func routeTodoDelete(ctx *gin.Context) {
-	db := dbInstance(ctx)
+	db := ctx.MustGet(CONTEXT_DB_KEY).(*DB)
 
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {

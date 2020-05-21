@@ -2,19 +2,26 @@ package main
 
 import (
 	"os"
+	"time"
 	"html/template"
 	"github.com/gin-gonic/gin"
 )
 
+const DATE_FORMAT = "2006-01-02"
+
 func main() {
 	router := gin.Default()
 
+	db := DBConnect(os.Getenv("DATABASE_URL"))
+
 	// make database available through context
-	router.Use(dbMiddleware())
+	router.Use(db.Middleware)
 
 	// make date formating available in templates
 	router.SetFuncMap(template.FuncMap{
-		"formatDate": formatDate,
+		"formatDate": func (t time.Time) string {
+			return t.Format(DATE_FORMAT)
+		},
 	})
 
 	router.LoadHTMLGlob("views/*")
