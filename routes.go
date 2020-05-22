@@ -114,6 +114,12 @@ func routeTodoPut(ctx *gin.Context) {
 
 // delete
 func routeTodoDelete(ctx *gin.Context) {
+	id := ctx.Param("id")
+	_, err := db.Exec("DELETE FROM todos Where id = $1",id)
+
+	if err != nil{
+		panic(err)
+	}
 	//id := ctx.Param("id")
 	ctx.String(http.StatusOK, "del")
 }
